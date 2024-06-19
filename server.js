@@ -8,6 +8,8 @@ const cors = require("cors");
 const DrawingService = require("./drawing-service");
 const Database = require("./database");
 
+require("dotenv").config();
+
 app.use(express.json());
 app.use(cors());
 
