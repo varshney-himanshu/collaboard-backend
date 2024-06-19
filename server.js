@@ -1,49 +1,31 @@
 const express = require("express");
-const { Server } = require("socket.io");
 const http = require("http");
 const app = express();
-const async = require("async");
 
 const server = http.createServer(app);
-const path = require("path");
-const socketIO = new Server(server);
 
-let strokes = [];
+const cors = require("cors");
+const DrawingService = require("./drawing-service");
+const Database = require("./database");
 
-let queue = async.queue((taskData, callback) => {
-  strokes.push(taskData.stroke);
-  taskData.socket.broadcast.emit("write-update", taskData.stroke);
+require("dotenv").config();
 
-  callback();
-}, 1);
+app.use(express.json());
+app.use(cors());
 
-/*
- * ----- socket connections ------
- */
+// Database connection
+const db = new Database();
+db.start();
 
-socketIO.on("connection", (socket) => {
-  console.log(`socket id:${socket.id} connected`);
+// Drawing Service
+new DrawingService(server);
 
-  socket.emit("connect-success", { data: strokes });
-
-  socket.on("write", ({ stroke }) => {
-    queue.push({ stroke, socket }, (err) => {
-      if (err) {
-        console.error("Error processing queue task:", err);
-      }
-    });
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`socket id:${socket.id} disconnected`);
-  });
-});
-
-/* http server endpoints */
-app.use(express.static("public"));
+// routes
+const authRoute = require("./routes/auth.route");
+app.use("/auth", authRoute);
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.send("<h1>Collaboard Backend API</h1>");
 });
 
 const PORT = process.env.PORT || 5000;
