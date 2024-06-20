@@ -3,6 +3,8 @@ window.onload = () => {
 
   var socket = io();
 
+  const board_id = "667429cabbc73510d7ebdf63";
+
   /** TODO: HELLO */
   let writeData = [];
 
@@ -12,13 +14,22 @@ window.onload = () => {
   let currY = 0;
   let isWriting = false;
 
-  socket.on("connect-success", ({ data }) => {
-    console.log("connected successfully", data);
+  socket.on("connect-success", () => {
+    console.log("connected successfully");
+    socket.emit("join-board", { board_id });
+  });
+
+  socket.on("new-user-joined", () => {
+    console.log("new-user-joinedd");
+  });
+  socket.on("join-board-success", ({ data }) => {
     writeData = data;
     redraw();
   });
 
   socket.on("write-update", (stroke) => {
+    console.log("writing update...");
+
     writeData.push(stroke);
     redraw();
   });
@@ -54,7 +65,7 @@ window.onload = () => {
       let stroke = { pX: prevX, pY: prevY, cX: currX, cY: currY };
       writeData.push(stroke);
       draw(prevX, prevY, currX, currY);
-      socket.emit("write", { stroke });
+      socket.emit("write", { stroke, board_id });
     }
   }
 

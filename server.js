@@ -7,8 +7,11 @@ const passport = require("passport");
 const cors = require("cors");
 const DrawingService = require("./drawing-service");
 const Database = require("./database");
+const path = require("path");
 
 require("dotenv").config();
+
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use(express.json());
 app.use(cors());
@@ -26,11 +29,12 @@ new DrawingService(server);
 // routes
 const authRoute = require("./routes/auth.route");
 const boardRoute = require("./routes/board.route");
+
 app.use("/auth", authRoute);
 app.use("/board", boardRoute);
 
 app.get("/", (req, res) => {
-  res.send("<h1>Collaboard Backend API</h1>");
+  res.sendFile(path.resolve(__dirname + "/public/index.html"));
 });
 
 const PORT = process.env.PORT || 5000;
